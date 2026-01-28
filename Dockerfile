@@ -9,4 +9,4 @@ COPY . .
 
 EXPOSE 7777
 
-CMD ["python", "run.py"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7777"]

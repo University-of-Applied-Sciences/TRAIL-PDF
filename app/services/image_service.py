@@ -1,10 +1,11 @@
 import base64
 import os
 import uuid
-from flask import current_app
+import logging
 from PIL import Image
-from werkzeug.utils import secure_filename
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 
 def encode_image(image_path):
@@ -39,7 +40,7 @@ def is_valid_image(file_stream):
         file_stream.seek(0)
         return True
     except Exception as e:
-        current_app.logger.error(f"Image validation error: {e}")
+        logger.error(f"Image validation error: {e}")
         return False
 
 
@@ -47,27 +48,39 @@ def save_image(image, temp_image_path):
     """
     Saves an uploaded image to a temporary directory.
 
-    - Generates a secure filename.
+    - Generates a unique filename.
     - Creates the temporary directory if it doesn't exist.
     - Saves the image file to the specified path.
 
-    :param image: The image file to save.
-    :type image: FileStorage
+    :param image: The image file to save (binary stream or file-like object).
+    :type image: file-like object
     :param temp_image_path: The directory where the image will be saved.
     :type temp_image_path: str
     :returns: The file path where the image was saved.
     :rtype: str
     """
-    filename = secure_filename(image.filename)
+    # Simple safe filename generation
+    ext = os.path.splitext(getattr(image, 'filename', 'image.jpg'))[1]
+    if not ext:
+        ext = '.jpg'
 
-    if not filename:
-        filename = datetime.now().strftime("%Y%m%d%H%M%S") + "_" + str(uuid.uuid4()) + ".jpg"
+    filename = datetime.now().strftime("%Y%m%d%H%M%S") + "_" + str(uuid.uuid4()) + ext
 
     if not os.path.exists(temp_image_path):
         os.makedirs(temp_image_path, exist_ok=True)
 
     image_path = os.path.join(temp_image_path, filename)
-    image.save(image_path)
+
+    # Handle both FastAPI UploadFile and standard file objects
+    if hasattr(image, 'save'): # For older types if any
+         image.save(image_path)
+    elif hasattr(image, 'file'): # FastAPI UploadFile
+        with open(image_path, "wb") as buffer:
+            import shutil
+            shutil.copyfileobj(image.file, buffer)
+    else:
+        with open(image_path, "wb") as buffer:
+            buffer.write(image.read())
 
     return image_path
 

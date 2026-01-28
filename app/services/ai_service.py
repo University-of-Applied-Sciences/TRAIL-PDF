@@ -2,9 +2,12 @@ import os
 import requests
 import time
 import csv
-from flask import current_app
+import logging
+from app.Config import Config
 from app.services.image_service import encode_image
 from app.utils.prompts import PROMPTS
+
+logger = logging.getLogger(__name__)
 
 
 def save_usage_to_csv(usage_info, filename="token_usage.csv"):
@@ -18,7 +21,7 @@ def save_usage_to_csv(usage_info, filename="token_usage.csv"):
     :returns: None
     """
     # Get the directory for saving token usage logs from the app's configuration
-    LOG_DIR = current_app.config['TOKEN_USAGE_DIR']
+    LOG_DIR = Config.TOKEN_USAGE_DIR
     os.makedirs(LOG_DIR, exist_ok=True)  # Ensure the directory exists
 
     filepath = os.path.join(LOG_DIR, filename)
@@ -51,19 +54,19 @@ def send_image_to_ai(image_path, chosen_prompt):
     image_url = f"data:image/jpeg;base64,{base64_image}"
 
     prompt_text = PROMPTS.get(chosen_prompt)
-    current_app.logger.info(f"Chosen prompt: {chosen_prompt}")
+    logger.info(f"Chosen prompt: {chosen_prompt}")
 
     if prompt_text is None:
-        current_app.logger.error(f"Unsupported language choice: {chosen_prompt}")
+        logger.error(f"Unsupported language choice: {chosen_prompt}")
         return f"Error processing image. Unsupported language choice: {chosen_prompt}"
 
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {current_app.config['OPENAI_API_KEY']}"
+        "Authorization": f"Bearer {Config.OPENAI_API_KEY}"
     }
 
     payload = {
-        "model": current_app.config['GPT_MODEL'],
+        "model": Config.GPT_MODEL,
         "messages": [
             {
                 "role": "user",
@@ -88,11 +91,11 @@ def send_image_to_ai(image_path, chosen_prompt):
 
             return text_content
         else:
-            current_app.logger.error(
+            logger.error(
                 f"Error from GPT API: Status Code {response.status_code}, Response: {response.text}")
             return f"Error processing image. API response status: {response.status_code}"
     except requests.exceptions.RequestException as e:
-        current_app.logger.error(f"Request to GPT API failed: {e}")
+        logger.error(f"Request to GPT API failed: {e}")
         return f"Error processing image. Exception: {e}"
 
 
@@ -113,12 +116,17 @@ def process_images_with_ai(images, chosen_prompt):
     """
     texts = []
     for i, image in enumerate(images):
-        if i > 0:
-            time.sleep(2)
-        current_app.logger.info(f"Processing image {image} on page {i + 1}")
+        logger.info(f"Processing image {image} on page {i + 1}")
+
+        # Optional delay between requests to avoid rate-limiting. 0 disables sleeping.
+        if i > 0 and getattr(Config, 'API_DELAY', 0):
+            try:
+                time.sleep(float(Config.API_DELAY))
+            except Exception:
+                pass
 
         text = send_image_to_ai(image, chosen_prompt)
 
-        current_app.logger.info(f"Received text: {text}")
+        logger.info(f"Received text: {text}")
         texts.append(text)
     return texts

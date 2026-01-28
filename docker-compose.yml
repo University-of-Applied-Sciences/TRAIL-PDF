@@ -1,5 +1,5 @@
 services:
-  trail-pdf:
+  backend:
     build: .
     ports:
       - "7777:7777"
@@ -8,3 +8,15 @@ services:
       - APP_SECRET_KEY=${APP_SECRET_KEY}
     volumes:
       - .:/usr/src/app
+      - ./uploads:/usr/src/app/uploads
+      - ./temp_images:/usr/src/app/temp_images
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:7777/api
+    depends_on:
+      - backend

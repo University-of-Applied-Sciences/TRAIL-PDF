@@ -24,7 +24,15 @@ class Config:
     GPT_MODEL = "gpt-4o"
     LOG_DIR = os.path.join(base_dir, 'logs')
     TOKEN_USAGE_DIR = os.path.join(LOG_DIR, 'token_usage')
-    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')  # Ensure this is pulled from the environment
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+    # Optional delay (in seconds) between API calls. Set to 0 to disable.
+    API_DELAY = float(os.getenv('API_DELAY', '0'))
+
+    @classmethod
+    def initialize_directories(cls):
+        """Ensures all required directories exist."""
+        for path in [cls.UPLOAD_PATH, cls.TEMP_IMAGE_PATH, cls.LOG_DIR, cls.TOKEN_USAGE_DIR]:
+            os.makedirs(path, exist_ok=True)
 
     @staticmethod
     def setup_env_file():

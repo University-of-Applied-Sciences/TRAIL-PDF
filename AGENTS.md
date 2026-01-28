@@ -144,5 +144,3 @@ Key config in [Config.py](app/Config.py):
 - No formal test suite exists currently
 - Manual testing via Docker: `docker-compose up` → `http://localhost:7777`
 - Token usage logged to CSV in `logs/token_usage/`
-
-

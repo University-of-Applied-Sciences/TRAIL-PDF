@@ -2,39 +2,15 @@ import io
 import os
 import webbrowser
 import html
-from flask import Response
 from collections import defaultdict
 import re
 
-
-def open_browser():
+def generate_html_content(texts, original_filename, language):
     """
-    Opens the default web browser and navigates to the local server URL.
-
-    :returns: None
-    """
-    webbrowser.open_new('http://127.0.0.1:7777/')
-
-
-def save_texts(texts, original_filename, language):
-    """
-    Saves processed text content as an HTML file with navigation links.
-
-    - Creates an HTML document with language-specific settings.
-    - Adds a navigation bar based on the headers found in the texts.
-    - Saves the content to a temporary file and prepares it for download.
-
-    :param texts: A list of text strings to be processed and saved.
-    :type texts: list of str
-    :param original_filename: The original name of the file to base the new filename on.
-    :type original_filename: str
-    :param language: The language setting to be used in the HTML document (e.g., 'english', 'german').
-    :type language: str
-    :returns: A Flask Response object that initiates a download of the generated HTML file.
-    :rtype: flask.Response
+    Generates the HTML content and filename for the processed texts.
     """
     base_filename = os.path.splitext(original_filename)[0]
-    new_filename = base_filename + " " + language
+    new_filename = f"{base_filename} {language}.html"
     html_content = "<!DOCTYPE html>\n"
 
     if language == "english":
@@ -59,7 +35,7 @@ def save_texts(texts, original_filename, language):
     processed_content = ""
     for idx, text in enumerate(texts):
         processed_text, headers = process_text_for_html(text, idx, header_counter)
-        
+
         for header in headers:
             # Add to navigation
             navigation += f'    <li><a href="#{header["id"]}">{header["title"]}</a></li>\n'
@@ -72,12 +48,7 @@ def save_texts(texts, original_filename, language):
     html_content += processed_content
 
     html_content += "</body>\n</html>"
-    html_bytes = io.BytesIO(html_content.encode('utf-8'))
-
-    response = Response(html_bytes.getvalue(),
-                        mimetype="text/html",
-                        headers={"Content-Disposition": f"attachment;filename={new_filename}.html"})
-    return response
+    return html_content, new_filename
 
 
 def process_text_for_html(text, idx, header_counter=None):
@@ -160,7 +131,7 @@ def process_text_for_html(text, idx, header_counter=None):
 
                     header_counter[title] += 1
                     display_title = f"{title} {header_counter[title]}" if header_counter[title] > 1 else title
-                    
+
                     header_id = f"section-{idx}-{len(headers)}-{header_counter[title]}"
                     headers.append({"id": header_id, "title": display_title})
 
@@ -172,7 +143,7 @@ def process_text_for_html(text, idx, header_counter=None):
                     title = processed_line.strip()
                     header_counter[title] += 1
                     display_title = f"{title} {header_counter[title]}" if header_counter[title] > 1 else title
-                    
+
                     header_id = f"section-{idx}-{len(headers)}-{header_counter[title]}"
                     headers.append({"id": header_id, "title": display_title})
                     processed_lines.append(f'<h1 id="{header_id}">{display_title}</h1>')

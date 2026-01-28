@@ -1,7 +1,9 @@
 import os
 import shutil
-from flask import current_app
+import logging
 import fitz
+
+logger = logging.getLogger(__name__)
 
 
 def convert_pdf_to_images(pdf_path, output_dir, start_page=None, end_page=None):
@@ -41,5 +43,5 @@ def convert_pdf_to_images(pdf_path, output_dir, start_page=None, end_page=None):
 
         return image_paths
     except Exception as e:
-        current_app.logger.error(f"Error in convert_pdf_to_images: {e}")
+        logger.error(f"Error in convert_pdf_to_images: {e}")
         raise

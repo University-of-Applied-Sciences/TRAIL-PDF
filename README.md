@@ -3,9 +3,9 @@
 A PDF to accessible HTML-Script Generator. Check out the latest release here: [Latest Release](https://github.com/AltarisV/TRAIL-PDF/releases)
 
 ## Description
-TRAIL is a web application that converts PDF files into images, sends them to the GPT-4o Model, and generates alternative text for each image. 
-The resulting text is then downloaded as an HTML file, which enables a blind person to navigate them with a screenreader. 
-By utilizing GPT, TRAIL is able to turn non-accessible PDF contents into neatly structured HTML files that include 
+TRAIL is a web application that converts PDF files into images, sends them to the GPT-4o Model, and generates alternative text for each image.
+The resulting text is then downloaded as an HTML file, which enables a blind person to navigate them with a screenreader.
+By utilizing GPT, TRAIL is able to turn non-accessible PDF contents into neatly structured HTML files that include
 image descriptions for important images, HTML tables in place of graphics, structured Code and descriptions of mathematical formulas.
 
 ## Getting Started
@@ -49,4 +49,4 @@ This will build and start the TRAIL application in a Docker container. You can a
 ## Planned
 
 - Showing the current progress for PDF-conversion
-- Giving a Side-by-Side of the PDF pages and corresponding HTML for easy post-editing 
+- Giving a Side-by-Side of the PDF pages and corresponding HTML for easy post-editing
